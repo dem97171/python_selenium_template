@@ -12,5 +12,5 @@ Selenium WebDriver for Chrome を使用してChromeのheadlessモードを操作
 ### 2. 日本語フォントをインストールする？
 (必須かどうかわからないけど) [窓の杜 - IPAフォント](https://forest.watch.impress.co.jp/library/software/ipafont/)とかからIPA日本語フォントをダウンロードして `~/.fonts/` ディレクトリを作成してそこに入れると日本語フォントが使用できるようになる。
 
-### メモ
+## メモ
 venvを作成すると自動的にpipが使えるようになる。親のpythonでpipをインストールする必要はない。
