@@ -2,7 +2,7 @@
 Selenium WebDriver for Chrome を使用してChromeのheadlessモードを操作するサンプル
 
 ## 動作確認環境
-- CentOS7
+- CentOS7 (google chrome がインストールされていること)
 - python3.6 venv使用 (epel repo)
 
 ## setup
