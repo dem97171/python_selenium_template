@@ -9,7 +9,7 @@ Selenium WebDriver for Chrome を使用してChromeのheadlessモードを操作
 ### 1. chromedriverを準備する
 [ChromeDriver - WebDriver for Chrome](https://sites.google.com/a/chromium.org/chromedriver/downloads)からchromedriverのzipをダウンロードして `vendor/driver/chromedriver` に実行ファイルを設置する。
 
-### seleniumをインストールする
+### 2. seleniumをインストールする
 
 venvを有効にした状態で
 ```
