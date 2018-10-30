@@ -30,6 +30,9 @@ def main():
     driver = webdriver.Chrome(executable_path="./vendor/driver/chromedriver", chrome_options=options,
                               service_args=["--debug", "--log-path=./logs/debug.log"])
 
+    # headless状態でのファイルのダウンロードを許可（ブラウザの設定変更）
+    enable_download_in_headless_chrome(driver, "./images/")
+
     # 作業topページを開く
     driver.get(_url)  # 画面get
     time.sleep(2)  # 読み込み待機時間
@@ -62,6 +65,14 @@ def closeSelenium(_driver):
     _driver.save_screenshot(dir_name + "05_login_result.png")  # imagesフォルダにスクリーンショットを保存
     _driver.quit()
     sys.exit()
+
+
+def enable_download_in_headless_chrome(browser, download_dir):
+    #add missing support for chrome "send_command"  to selenium webdriver
+    browser.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
+
+    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': download_dir}}
+    browser.execute("send_command", params)
 
 
 main()
