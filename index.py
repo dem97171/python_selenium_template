@@ -1,12 +1,23 @@
 import sys
+import os
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-
+import configparser
 
 dir_name = "./images/"
 
+
 def main():
+    # config.ini読み込み
+    _ini = configparser.ConfigParser()
+    if os.path.exists("./config.ini"):
+        _ini.read("./config.ini")
+    else:
+        sys.stderr.write('%s が見つかりません' % INI_FILE)
+        sys.exit(2)
+
+    # 捜査開始のURL
     _url = "https://s-portal.cloud.global.fujitsu.com/SK5PCOM001/"
 
     # プラウザ起動（Chrome）
@@ -30,9 +41,9 @@ def main():
     driver.save_screenshot(dir_name + "02_login.png")  # imagesフォルダにスクリーンショットを保存
 
     # Loginフォームに値を入力してログインボタンをクリック
-    driver.find_element_by_id("keiyakuno").send_keys("12345678")
-    driver.find_element_by_id("username").send_keys("username")
-    driver.find_element_by_id("password").send_keys("password")
+    driver.find_element_by_id("keiyakuno").send_keys(_ini['login']['keiyakuno'])
+    driver.find_element_by_id("username").send_keys(_ini['login']["username"])
+    driver.find_element_by_id("password").send_keys(_ini['login']['password'])
     driver.save_screenshot(dir_name + "03_login_input.png")  # imagesフォルダにスクリーンショットを保存
 
     driver.find_element_by_id("Submit").click()
