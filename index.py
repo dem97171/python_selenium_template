@@ -53,15 +53,26 @@ def main():
     time.sleep(2)
     driver.save_screenshot(dir_name + "04_login_result.png")  # imagesフォルダにスクリーンショットを保存
 
+    # ログイン失敗したらselenium終了
     _unExpectedUrl = "https://k5-authentication.paas.cloud.global.fujitsu.com/cloudlink/module.php/core/loginuserpass.php?"
     if driver.current_url == _unExpectedUrl:
-        closeSelenium(driver)   # ログインに失敗したらselenium終了
+        closeSelenium(driver)
 
+    # ログイン後TOP画面からご利用料金（確定）のリンクをクリック。
+    driver.find_element_by_link_text("ご利用料金（確定）").click()
+    time.sleep(2)
+    driver.save_screenshot(dir_name + "06_meisai_kakutei.png")
+
+    # 明細csvをダウンロード
+    driver.find_element_by_name("download").click()
+    time.sleep(2)
+    driver.save_screenshot(dir_name + "07_meisai_kakutei_download_csv.png")
 
     closeSelenium(driver)
 
 
 def closeSelenium(_driver):
+    time.sleep(5)
     _driver.save_screenshot(dir_name + "05_login_result.png")  # imagesフォルダにスクリーンショットを保存
     _driver.quit()
     sys.exit()
