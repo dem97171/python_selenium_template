@@ -3,3 +3,4 @@ config.ini
 pycharm-debug-py3k.egg
 images/
 vendor/driver/
+venv
