@@ -12,8 +12,8 @@ class GsTaikin:
     def __init__(self):
         # config.ini読み込み
         self._ini = configparser.ConfigParser()
-        if os.path.exists("./configGsTaikin.ini"):
-            self._ini.read("./configGsTaikin.ini")
+        if os.path.exists("./configGs.ini"):
+            self._ini.read("./configGs.ini")
         else:
             sys.stderr.write('configGsTaikin.iniが見つかりません')
             sys.exit(2)

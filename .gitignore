@@ -4,7 +4,6 @@ pycharm-debug-py3k.egg
 images/
 vendor/driver/
 venv
-configGsTaikin.ini
-HttpClient.cpython-37.pyc
+configGs.ini
 debug.log
 __pycache__
