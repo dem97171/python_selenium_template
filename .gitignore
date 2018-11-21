@@ -5,3 +5,6 @@ images/
 vendor/driver/
 venv
 configGsTaikin.ini
+HttpClient.cpython-37.pyc
+debug.log
+__pycache__
