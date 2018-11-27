@@ -1,7 +1,7 @@
-import GsTaikin
+import GsSmail
 
 def main():
-    gsWorker = GsTaikin.GsTaikin()
+    gsWorker = GsSmail.GsSmail()
     gsWorker.work()
 
 main()
