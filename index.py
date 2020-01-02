@@ -1,89 +1,129 @@
-import sys
-import os
+from bs4 import BeautifulSoup
+import urllib.request
+import requests
+import json
+import re
 import time
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-import configparser
 
-dir_name = "./images/"
+baseUrl = 'https://www.banei-keiba.or.jp'
+
+def fetchLinkDoms():
+    '''
+    馬の詳細ページに飛ぶaタグのDOM一覧を取得して返す。
+    '''
+    
+    url = baseUrl + '/db_hourse.php'
+    response = urllib.request.urlopen(url)
+    soup = BeautifulSoup(response, "html.parser")
+    response.close()
+    # print(soup)
+    linkDoms = soup.find('div', class_="tab_list").find_all('a', href=re.compile("^db_hourse_detail.php*"))
+    return linkDoms
+
+def fetchHorseBsObj(horseUrl):
+    '''
+    beautiful soup4で取得した馬情報ページのDOM情報を返す
+    '''
+
+    # URLから個別の馬データを取得
+    horseResponse = urllib.request.urlopen(horseUrl)
+    print(horseUrl)
+    horseBs = BeautifulSoup(horseResponse, "html.parser")
+    return horseBs
+
+
+def fetchHorseName(horseBs):
+    '''
+    bs4用に取得したDOM情報から馬名を取得して返す。
+    '''
+    horseName = horseBs.find('section', id="box_pg").find('h2', class_='ttl_d').string
+    print(horseName)
+    return horseName
+
+def fetchHorseInfo(horseBs):
+    '''
+    馬の個別情報を取得
+    '''
+    tdList = horseBs.find('section', id="box_pg").find_all('td')
+    print(tdList)
+    return tdList
+
+def isExistHorseRecord(horseUrl):
+    '''
+    horseUrlがすでにテーブル上に登録されているかを判定する
+    '''
+    queryObj = {
+        'url': horseUrl
+    }
+    json_data = json.dumps(queryObj).encode("utf-8")
+    headers = {"Content-Type" : "application/json"}
+    requestUrl = "http://localhost:8080/mldataregister/CFAPI/horse_count.cfm"
+    result = requests.post(requestUrl, data=json_data, headers=headers)
+    print(result.json())
+    if(result.json()['exist'] == 'true'):
+        print('return trueeeee')
+        return True
+    else:
+        print('return falseeeee')
+        return False
+
+
+def printProgress(index, length):
+    print(str(index) + '/' + str(length))
+
+def reshapeRegistrationData(horseName, horseInfo, horseUrl):
+    queryObj = {
+        'name': horseName,
+        'father': horseInfo[0].string,
+        'mother': horseInfo[1].string,
+        'mothersfather': horseInfo[2].string,
+        'color': horseInfo[3].string,
+        'sex': horseInfo[4].string,
+        'birthday': horseInfo[6].string,
+        'orner': horseInfo[7].string,
+        'origin': horseInfo[8].string,
+        'url': horseUrl
+    }
+    print(queryObj)
+    return queryObj
+
+def registerHorse(queryObj):
+    json_data = json.dumps(queryObj).encode("utf-8")
+    headers = {"Content-Type" : "application/json"}
+    requestUrl = "http://localhost:8080/mldataregister/CFAPI/horse.cfm"
+    result = requests.post(requestUrl, data=json_data, headers=headers)
+    print(result.text)
 
 
 def main():
-    # config.ini読み込み
-    _ini = configparser.ConfigParser()
-    if os.path.exists("./config.ini"):
-        _ini.read("./config.ini")
-    else:
-        sys.stderr.write('%s が見つかりません' % INI_FILE)
-        sys.exit(2)
+    linkDoms = fetchLinkDoms()
+    i=0
+    for aTagObj in linkDoms:
+        horseUrl = baseUrl + '/' + aTagObj.get('href')
+        horseBs = fetchHorseBsObj(horseUrl)
 
-    # 捜査開始のURL
-    _url = "https://s-portal.cloud.global.fujitsu.com/SK5PCOM001/"
+        # 進捗件数表示
+        i+=1;
+        printProgress(i, len(linkDoms))
 
-    # プラウザ起動（Chrome）
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--window-size=1280,1024')
-    options.add_argument('--no-sandbox')  # Running as root without --no-sandbox is not supported. See https://crbug.com/638180
+        # 登録ずみかどうか判定
+        if(isExistHorseRecord(horseUrl)):
+            print("skip")
+            continue
 
-    driver = webdriver.Chrome(executable_path="./vendor/driver/chromedriver", chrome_options=options,
-                              service_args=["--debug", "--log-path=./logs/debug.log"])
+        # 馬名を取得
+        horseName = fetchHorseName(horseBs)
 
-    # headless状態でのファイルのダウンロードを許可（ブラウザの設定変更）
-    enable_download_in_headless_chrome(driver, "./images/")
+        # 馬情報を取得
+        horseInfo = fetchHorseInfo(horseBs)
 
-    # 作業topページを開く
-    driver.get(_url)  # 画面get
-    time.sleep(2)  # 読み込み待機時間
-    driver.save_screenshot(dir_name + "01_top.png")  # imagesフォルダにスクリーンショットを保存
+        # 登録データ整形
+        queryObj = reshapeRegistrationData(horseName, horseInfo, horseUrl)
 
-    # Loginボタンをクリックしてlogin画面を開く
-    driver.find_element_by_class_name("login-link").click()
-    time.sleep(2)
-    driver.save_screenshot(dir_name + "02_login.png")  # imagesフォルダにスクリーンショットを保存
+        # CFのAPIに登録のリクエストをぶん投げる
+        registerHorse(queryObj)
 
-    # Loginフォームに値を入力してログインボタンをクリック
-    driver.find_element_by_id("keiyakuno").send_keys(_ini['login']['keiyakuno'])
-    driver.find_element_by_id("username").send_keys(_ini['login']["username"])
-    driver.find_element_by_id("password").send_keys(_ini['login']['password'])
-    driver.save_screenshot(dir_name + "03_login_input.png")  # imagesフォルダにスクリーンショットを保存
-
-    driver.find_element_by_id("Submit").click()
-    time.sleep(2)
-    driver.save_screenshot(dir_name + "04_login_result.png")  # imagesフォルダにスクリーンショットを保存
-
-    # ログイン失敗したらselenium終了
-    _unExpectedUrl = "https://k5-authentication.paas.cloud.global.fujitsu.com/cloudlink/module.php/core/loginuserpass.php?"
-    if driver.current_url == _unExpectedUrl:
-        closeSelenium(driver)
-
-    # ログイン後TOP画面からご利用料金（確定）のリンクをクリック。
-    driver.find_element_by_link_text("ご利用料金（確定）").click()
-    time.sleep(2)
-    driver.save_screenshot(dir_name + "06_meisai_kakutei.png")
-
-    # 明細csvをダウンロード
-    driver.find_element_by_name("download").click()
-    time.sleep(2)
-    driver.save_screenshot(dir_name + "07_meisai_kakutei_download_csv.png")
-
-    closeSelenium(driver)
-
-
-def closeSelenium(_driver):
-    time.sleep(5)
-    _driver.save_screenshot(dir_name + "05_login_result.png")  # imagesフォルダにスクリーンショットを保存
-    _driver.quit()
-    sys.exit()
-
-
-def enable_download_in_headless_chrome(browser, download_dir):
-    #add missing support for chrome "send_command"  to selenium webdriver
-    browser.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
-
-    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': download_dir}}
-    browser.execute("send_command", params)
+        time.sleep(10)
 
 
 main()
