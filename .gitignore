@@ -7,3 +7,5 @@ venv
 configGs.ini
 debug.log
 __pycache__
+
+temp

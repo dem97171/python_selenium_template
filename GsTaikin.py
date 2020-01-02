@@ -50,7 +50,7 @@ class GsTaikin:
         # iframeに入る
         iframe = self.driver.find_element('name', 'body')
         self.driver.switch_to.frame(iframe)
-        self.driver.find_element_by_id("sts_sonota").click()
+        self.driver.find_element_by_id("sts_zaiseki").click()
         time.sleep(1)
         self.driver.find_element_by_id("zskmain").find_element_by_class_name('btn_base0_1').click()
         time.sleep(1)
